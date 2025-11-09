@@ -39,7 +39,7 @@ cat > "$CRON_FILE" <<EOF
 0 * * * * root /root/xray-cloudflare-setup/monitoring/collect-metrics.sh >> /var/log/xray-monitor.log 2>&1
 
 # Обновление сертификатов (ежедневно в 03:00)
-0 3 * * * root /root/xray-cloudflare-setup/scripts/update-certs.sh >> /var/log/xray-monitor.log 2>&1
+0 3 * * * root /root/xray-cloudflare-setup/scripts/renew-certs.sh >> /var/log/xray-monitor.log 2>&1
 
 # Генерация еженедельного отчета (каждое воскресенье в 23:00)
 0 23 * * 0 root /root/xray-cloudflare-setup/monitoring/generate-report.sh >> /var/log/xray-monitor.log 2>&1
