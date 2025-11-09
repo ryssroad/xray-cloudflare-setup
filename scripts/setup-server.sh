@@ -262,6 +262,11 @@ EOF
         CERT_PATH="/etc/xray/certs/cert.pem"
         KEY_PATH="/etc/xray/certs/key.pem"
 
+        # Останавливаем и отключаем Caddy (порт 443 нужен для Xray)
+        log_info "Отключение автозапуска Caddy (Xray займет порт 443)..."
+        systemctl stop caddy
+        systemctl disable caddy
+
         log_success "Сертификаты скопированы и права настроены"
     else
         log_error "Не удалось получить TLS сертификат"

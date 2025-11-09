@@ -33,6 +33,16 @@ if [[ "$TLS_METHOD" == "caddy" ]]; then
     CADDY_CERT="/var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/$DOMAIN/$DOMAIN.crt"
     CADDY_KEY="/var/lib/caddy/.local/share/caddy/certificates/acme-v02.api.letsencrypt.org-directory/$DOMAIN/$DOMAIN.key"
 
+    # Остановка Xray для освобождения порта 443
+    log_info "Остановка Xray для обновления сертификатов..."
+    systemctl stop xray
+
+    # Запуск Caddy для обновления сертификатов
+    log_info "Запуск Caddy для обновления сертификатов..."
+    systemctl start caddy
+    sleep 5
+
+    # Проверка что сертификаты обновлены
     if [[ -f "$CADDY_CERT" ]] && [[ -f "$CADDY_KEY" ]]; then
         # Копирование обновленных сертификатов
         mkdir -p /etc/xray/certs
@@ -45,19 +55,22 @@ if [[ "$TLS_METHOD" == "caddy" ]]; then
         chown nobody:nogroup /etc/xray/certs/key.pem
 
         log_success "Сертификаты обновлены"
-
-        # Перезапуск Xray для применения новых сертификатов
-        log_info "Перезапуск Xray..."
-        systemctl restart xray
-
-        if systemctl is-active --quiet xray; then
-            log_success "Xray успешно перезапущен с новыми сертификатами"
-        else
-            log_error "Не удалось перезапустить Xray"
-            exit 1
-        fi
     else
         log_error "Сертификаты Caddy не найдены"
+        systemctl stop caddy
+        systemctl start xray
+        exit 1
+    fi
+
+    # Остановка Caddy и запуск Xray
+    log_info "Остановка Caddy и запуск Xray..."
+    systemctl stop caddy
+    systemctl start xray
+
+    if systemctl is-active --quiet xray; then
+        log_success "Xray успешно перезапущен с обновленными сертификатами"
+    else
+        log_error "Не удалось перезапустить Xray"
         exit 1
     fi
 elif [[ "$TLS_METHOD" == "certbot" ]]; then
