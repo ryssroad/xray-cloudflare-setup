@@ -1,0 +1,44 @@
+# Logs
+*.log
+/var/log/
+
+# Temporary files
+*.tmp
+*.swp
+*~
+
+# Backup files
+*.backup
+*.bak
+
+# Client configs with real domains
+/xray-client-configs/
+
+# Sensitive data
+.env
+*.key
+*.pem
+*.crt
+
+# Reports and metrics
+/xray-reports/
+/var/log/xray-metrics/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# Node modules (if any)
+node_modules/
+
+# Config info files (may contain sensitive data)
+xray-config-info.txt
+.xray-uuid
+
+# Backup configs
+xray-backups/

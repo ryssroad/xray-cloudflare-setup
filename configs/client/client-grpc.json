@@ -1,0 +1,81 @@
+{
+  "log": {
+    "loglevel": "warning"
+  },
+  "inbounds": [{
+    "port": 1080,
+    "protocol": "socks",
+    "settings": {
+      "auth": "noauth",
+      "udp": true,
+      "ip": "127.0.0.1"
+    },
+    "sniffing": {
+      "enabled": true,
+      "destOverride": ["http", "tls"]
+    }
+  },
+  {
+    "port": 1081,
+    "protocol": "http",
+    "settings": {
+      "timeout": 360
+    }
+  }],
+  "outbounds": [{
+    "protocol": "vless",
+    "settings": {
+      "vnext": [{
+        "address": "YOUR_DOMAIN",
+        "port": 443,
+        "users": [{
+          "id": "e0107f92-4772-4f50-b240-2358f4f10154",
+          "encryption": "none",
+          "level": 0
+        }]
+      }]
+    },
+    "streamSettings": {
+      "network": "grpc",
+      "security": "tls",
+      "tlsSettings": {
+        "serverName": "YOUR_DOMAIN",
+        "alpn": ["h2"],
+        "fingerprint": "chrome",
+        "allowInsecure": false
+      },
+      "grpcSettings": {
+        "serviceName": "grpc-service",
+        "multiMode": false,
+        "idle_timeout": 60,
+        "health_check_timeout": 20,
+        "permit_without_stream": false,
+        "initial_windows_size": 65536
+      }
+    },
+    "tag": "proxy"
+  },
+  {
+    "protocol": "freedom",
+    "tag": "direct"
+  },
+  {
+    "protocol": "blackhole",
+    "tag": "block"
+  }],
+  "routing": {
+    "domainStrategy": "IPIfNonMatch",
+    "rules": [
+      {
+        "type": "field",
+        "ip": ["geoip:private"],
+        "outboundTag": "direct"
+      },
+      {
+        "type": "field",
+        "domain": ["geosite:category-ads-all"],
+        "outboundTag": "block"
+      }
+    ]
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "log": {
+    "loglevel": "warning",
+    "access": "/var/log/xray/access.log",
+    "error": "/var/log/xray/error.log"
+  },
+  "inbounds": [{
+    "port": 443,
+    "protocol": "vless",
+    "settings": {
+      "clients": [{
+        "id": "e0107f92-4772-4f50-b240-2358f4f10154",
+        "email": "user@example.com",
+        "level": 0
+      }],
+      "decryption": "none",
+      "fallbacks": []
+    },
+    "streamSettings": {
+      "network": "grpc",
+      "security": "tls",
+      "tlsSettings": {
+        "certificates": [{
+          "certificateFile": "/etc/letsencrypt/live/YOUR_DOMAIN/fullchain.pem",
+          "keyFile": "/etc/letsencrypt/live/YOUR_DOMAIN/privkey.pem"
+        }],
+        "alpn": ["h2"],
+        "minVersion": "1.2"
+      },
+      "grpcSettings": {
+        "serviceName": "grpc-service",
+        "multiMode": false,
+        "idle_timeout": 60,
+        "health_check_timeout": 20,
+        "permit_without_stream": false,
+        "initial_windows_size": 65536
+      }
+    },
+    "sniffing": {
+      "enabled": true,
+      "destOverride": ["http", "tls"]
+    }
+  }],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "tag": "direct",
+      "settings": {
+        "domainStrategy": "UseIPv4"
+      }
+    },
+    {
+      "protocol": "blackhole",
+      "tag": "block"
+    }
+  ],
+  "routing": {
+    "domainStrategy": "IPIfNonMatch",
+    "rules": [
+      {
+        "type": "field",
+        "ip": ["geoip:private"],
+        "outboundTag": "block"
+      }
+    ]
+  }
+}

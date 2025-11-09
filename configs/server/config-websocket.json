@@ -1,0 +1,67 @@
+{
+  "log": {
+    "loglevel": "warning",
+    "access": "/var/log/xray/access.log",
+    "error": "/var/log/xray/error.log"
+  },
+  "inbounds": [{
+    "port": 443,
+    "protocol": "vless",
+    "settings": {
+      "clients": [{
+        "id": "e0107f92-4772-4f50-b240-2358f4f10154",
+        "email": "user@example.com",
+        "level": 0
+      }],
+      "decryption": "none",
+      "fallbacks": []
+    },
+    "streamSettings": {
+      "network": "ws",
+      "security": "tls",
+      "tlsSettings": {
+        "certificates": [{
+          "certificateFile": "/etc/letsencrypt/live/YOUR_DOMAIN/fullchain.pem",
+          "keyFile": "/etc/letsencrypt/live/YOUR_DOMAIN/privkey.pem"
+        }],
+        "alpn": ["h2", "http/1.1"],
+        "minVersion": "1.2"
+      },
+      "wsSettings": {
+        "path": "/ws-path",
+        "headers": {
+          "Host": "YOUR_DOMAIN"
+        },
+        "maxEarlyData": 2048,
+        "earlyDataHeaderName": "Sec-WebSocket-Protocol"
+      }
+    },
+    "sniffing": {
+      "enabled": true,
+      "destOverride": ["http", "tls"]
+    }
+  }],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "tag": "direct",
+      "settings": {
+        "domainStrategy": "UseIPv4"
+      }
+    },
+    {
+      "protocol": "blackhole",
+      "tag": "block"
+    }
+  ],
+  "routing": {
+    "domainStrategy": "IPIfNonMatch",
+    "rules": [
+      {
+        "type": "field",
+        "ip": ["geoip:private"],
+        "outboundTag": "block"
+      }
+    ]
+  }
+}
