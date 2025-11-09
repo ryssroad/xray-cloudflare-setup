@@ -38,6 +38,9 @@ cat > "$CRON_FILE" <<EOF
 # Сбор метрик каждый час
 0 * * * * root /root/xray-cloudflare-setup/monitoring/collect-metrics.sh >> /var/log/xray-monitor.log 2>&1
 
+# Обновление сертификатов (ежедневно в 03:00)
+0 3 * * * root /root/xray-cloudflare-setup/scripts/update-certs.sh >> /var/log/xray-monitor.log 2>&1
+
 # Генерация еженедельного отчета (каждое воскресенье в 23:00)
 0 23 * * 0 root /root/xray-cloudflare-setup/monitoring/generate-report.sh >> /var/log/xray-monitor.log 2>&1
 
@@ -57,6 +60,7 @@ echo ""
 log_info "Расписание мониторинга:"
 echo "  ✓ Проверка доступности: каждые 5 минут"
 echo "  ✓ Сбор метрик: каждый час"
+echo "  ✓ Обновление сертификатов: ежедневно в 03:00"
 echo "  ✓ Генерация отчета: каждое воскресенье в 23:00"
 echo "  ✓ Ротация логов: ежедневно"
 

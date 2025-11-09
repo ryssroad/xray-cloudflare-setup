@@ -246,6 +246,23 @@ EOF
 
     if [[ -f "$CERT_PATH" ]] && [[ -f "$KEY_PATH" ]]; then
         log_success "TLS сертификат получен"
+
+        # Копирование сертификатов в доступное для xray место
+        log_info "Копирование сертификатов в /etc/xray/certs/..."
+        mkdir -p /etc/xray/certs
+        cp "$CERT_PATH" /etc/xray/certs/cert.pem
+        cp "$KEY_PATH" /etc/xray/certs/key.pem
+
+        # Настройка прав доступа для xray (работает под пользователем nobody)
+        chmod 644 /etc/xray/certs/cert.pem
+        chmod 600 /etc/xray/certs/key.pem
+        chown nobody:nogroup /etc/xray/certs/key.pem
+
+        # Обновляем переменные для использования в конфигурации
+        CERT_PATH="/etc/xray/certs/cert.pem"
+        KEY_PATH="/etc/xray/certs/key.pem"
+
+        log_success "Сертификаты скопированы и права настроены"
     else
         log_error "Не удалось получить TLS сертификат"
         log_info "Проверьте логи Caddy: journalctl -u caddy -n 50"
@@ -303,11 +320,10 @@ apply_xray_config() {
         exit 1
     fi
 
-    # Замена переменных в конфигурации
+    # Копирование и замена переменных в конфигурации
     cp "$CONFIG_SOURCE" /usr/local/etc/xray/config.json
-    sed -i "s|YOUR_DOMAIN|$DOMAIN|g" /usr/local/etc/xray/config.json
-    sed -i "s|e0107f92-4772-4f50-b240-2358f4f10154|$UUID|g" /usr/local/etc/xray/config.json
 
+    # ВАЖНО: Сначала заменяем пути к сертификатам, потом домен!
     # Обновление путей к сертификатам в зависимости от метода
     if [[ "$TLS_METHOD" == "caddy" ]]; then
         sed -i "s|/etc/letsencrypt/live/YOUR_DOMAIN/fullchain.pem|$CERT_PATH|g" /usr/local/etc/xray/config.json
@@ -315,6 +331,10 @@ apply_xray_config() {
     elif [[ "$TLS_METHOD" == "certbot" ]] || [[ "$TLS_METHOD" == "manual" ]]; then
         sed -i "s|/etc/letsencrypt/live/YOUR_DOMAIN|/etc/letsencrypt/live/$DOMAIN|g" /usr/local/etc/xray/config.json
     fi
+
+    # Теперь заменяем остальные переменные
+    sed -i "s|YOUR_DOMAIN|$DOMAIN|g" /usr/local/etc/xray/config.json
+    sed -i "s|e0107f92-4772-4f50-b240-2358f4f10154|$UUID|g" /usr/local/etc/xray/config.json
 
     # Проверка конфигурации
     if xray -test -config /usr/local/etc/xray/config.json; then
