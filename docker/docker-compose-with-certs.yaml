@@ -1,0 +1,22 @@
+services:
+  remnanode:
+    container_name: remnanode
+    hostname: remnanode
+    image: remnawave/node:latest
+    env_file:
+      - .env
+    network_mode: host
+    restart: always
+    volumes:
+      # Xray binaries and geo data
+      - /var/lib/remnanode/xray:/usr/local/bin/xray
+      - /var/lib/remnanode/geoip.dat:/usr/local/share/xray/geoip.dat
+      - /var/lib/remnanode/geosite.dat:/usr/local/share/xray/geosite.dat
+
+      # TLS Certificates (ДОБАВЛЕНО!)
+      # Маппим хостовую директорию с сертификатами в контейнер
+      - /etc/xray/certs:/etc/xray/certs:ro  # :ro = read-only для безопасности
+
+      # Альтернативный вариант: можно маппить конкретные файлы
+      # - /etc/xray/certs/cloudflare-origin.pem:/etc/xray/certs/cert.pem:ro
+      # - /etc/xray/certs/cloudflare-origin-key.pem:/etc/xray/certs/key.pem:ro

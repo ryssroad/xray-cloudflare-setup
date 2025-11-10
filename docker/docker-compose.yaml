@@ -1,0 +1,14 @@
+services:
+  remnanode:
+    container_name: remnanode
+    hostname: remnanode
+    image: remnawave/node:latest
+    env_file:
+      - .env
+    network_mode: host
+    restart: always
+    volumes:
+      - /var/lib/remnanode/xray:/usr/local/bin/xray
+      - /var/lib/remnanode/geoip.dat:/usr/local/share/xray/geoip.dat
+      - /var/lib/remnanode/geosite.dat:/usr/local/share/xray/geosite.dat
+      # - /var/lib/remnanode:/var/lib/remnanode
